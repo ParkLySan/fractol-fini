@@ -1,0 +1,73 @@
+
+
+.PHONY: all fclean clean re libmlx.a libclean libfclean mlxclean libft.a relib
+
+NAME = fractol
+
+CC = @gcc $(FLAGS)
+FLAGS = -Wall -Wextra -Werror -O2
+#FLAGS = -Wall -Wextra -Werror -lmlx -L./sierra -framework OpenGL -framework Appkit
+
+C_FOLD = ./src/
+#O_FOLD = ./obj
+H_FOLD = ./
+LIB_FOLD = ./libft
+GLIB_FOLD = ./sierra
+
+LIB = $(LIB_FOLD)/libft.a
+GLIB = $(GLIB_FOLD)/libmlx.a
+
+SRC = main main_loop ft_args_check ft_clear_img\
+	  ft_key_init key_func key_func2 key_action\
+	  mouse zoom ft_color\
+	  mandelbrot julia newton
+
+C_FILE = $(addsuffix .c,$(addprefix $(C_FOLD),$(SRC)))
+
+O_FILE = $(addsuffix .o,$(SRC))
+
+all: $(NAME)
+
+$(NAME): $(GLIB) $(LIB) $(O_FILE)
+	@gcc $(FLAGS) $(LIB) $(GLIB) -framework OpenGL -framework Appkit -o $@ $(O_FILE)
+	@echo "\033[32mexecutable OK\033[0m"
+
+%.o: src/%.c ./include/fractol.h ./include/keyboard.h
+	@gcc -c $< $(FLAGS) -I$(LIB_FOLD) -o $@
+	@echo "\033[32m$@\033[0m"
+
+#$(O_FOLD):
+#	if [ ! -d "$(O_FOLD)/" ];then \
+#		mkdir $(O_FOLD); \
+#	fi
+
+libft.a: $(LIB)
+
+libmlx.a : $(GLIB)
+
+$(LIB):
+	@$(MAKE) -C libft
+
+$(GLIB):
+	@$(MAKE) -C $(GLIB_FOLD)
+
+libclean:
+	@$(MAKE) -C libft clean
+
+mlxclean:
+	@$(MAKE) -C $(GLIB_FOLD) clean
+
+clean: libclean
+	@/bin/rm -f $(O_FILE)
+	@echo "\033[32mrm .o files\033[0m"
+
+libfclean:
+	@$(MAKE) -C libft fclean
+
+fclean: clean libfclean mlxclean
+	@/bin/rm -f $(NAME)
+	@echo "\033[32mrm $(NAME)\033[0m"
+
+relib: libfclean libft.a
+
+re: fclean all
